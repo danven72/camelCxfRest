@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	   http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+       http://camel.apache.org/schema/spring
+	   http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+	<bean name="myProcessor" class="it.scai.camelcxfgirex.business.processor.CustomProcessor" />
+
+	<routeContext id="firstRouting" xmlns="http://camel.apache.org/schema/spring">
+		<route trace="true" id="ROUTE_1">
+			<from uri="cxfrs:bean:rsServer?bindingStyle=Default" />
+			<choice>
+				<when>
+					<simple> ${in.header.operationName} == 'getWorkElement'</simple>
+					<to uri="bean:serviceController?method=doGetWorkElement" />
+				</when>
+				<when>
+					<simple> ${in.header.operationName} == 'getString'</simple>
+					<to uri="bean:serviceController?method=doGetString" />
+					<to uri="jmstx:Q_REMIX?requestTimeout=100s" />
+				</when>
+			</choice>
+			<log message="The message contains ${body}" />
+		</route>
+		
+		<route trace="true" id="QUEUE_REMIX">
+			<from uri="jmstx:Q_REMIX?concurrentConsumers=3&amp;maxConcurrentConsumers=50&amp;asyncConsumer=false" />
+			<to uri="myProcessor"/> 
+			<!-- <process ref="myProcessor" /> -->
+		</route>
+	</routeContext>
+
+
+</beans>

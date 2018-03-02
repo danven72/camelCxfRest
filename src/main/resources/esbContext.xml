@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:cxf="http://camel.apache.org/schema/cxf"
+	xmlns="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc
+	   http://www.springframework.org/schema/mvc/spring-mvc.xsd
+	   http://www.springframework.org/schema/beans
+	   http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+       http://camel.apache.org/schema/spring
+	   http://camel.apache.org/schema/spring/camel-spring.xsd 
+	   http://www.springframework.org/schema/context 
+	   http://www.springframework.org/schema/context/spring-context.xsd 
+	   http://camel.apache.org/schema/cxf
+	   http://camel.apache.org/schema/cxf/camel-cxf.xsd
+	   http://www.springframework.org/schema/aop 
+	   http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+	<import resource="baseConfig.xml" />
+	<import resource="beans.xml" />
+	<import resource="endPointsCXF.xml" />
+	<import resource="routeCamel1.xml" />
+	<import resource="routeCamel2.xml" />
+
+	<!-- Istanziazione del CamelContext con i Routs che deve gestire  -->
+	<camelContext id="camelESB" xmlns="http://camel.apache.org/schema/spring"
+		trace="true" useMDCLogging="true" errorHandlerRef="loggingErrorHandler">
+		<!-- <package>it.scai.camelcxfgirex.business</package> -->
+		<routeContextRef ref="firstRouting" />
+		<routeContextRef ref="secondRouting" />
+	</camelContext>
+
+	<bean id="loggingErrorHandler" class="org.apache.camel.builder.DefaultErrorHandlerBuilder" />
+
+
+</beans>

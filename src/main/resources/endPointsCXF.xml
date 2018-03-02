@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:cxf="http://camel.apache.org/schema/cxf"
+	xmlns:http="http://cxf.apache.org/transports/http/configuration"
+	xmlns:jaxrs="http://cxf.apache.org/jaxrs"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	   http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+       http://cxf.apache.org/transports/http/configuration
+       http://cxf.apache.org/schemas/configuration/http-conf.xsd
+       http://camel.apache.org/schema/cxf
+	   http://camel.apache.org/schema/cxf/camel-cxf.xsd
+	   http://camel.apache.org/schema/spring
+	   http://camel.apache.org/schema/spring/camel-spring.xsd
+	   http://cxf.apache.org/jaxrs
+	   http://cxf.apache.org/schemas/jaxrs.xsd">
+
+	<!-- Documentazione: http://camel.apache.org/cxfrs.html
+	     cxf:rsServer Definisce un endPoint Rest CXF per Camel 
+	-->
+	<cxf:rsServer id="rsServer" address="/services"
+		loggingFeatureEnabled="true">
+		<cxf:serviceBeans>
+			<ref bean="serviceElementAPI" />
+		</cxf:serviceBeans>
+		<cxf:providers>
+			<ref bean="jsonProvider" />
+		</cxf:providers>
+	</cxf:rsServer>
+
+	<cxf:rsServer id="rsServer2" address="/services2"
+		loggingFeatureEnabled="true">
+		<cxf:serviceBeans>
+			<ref bean="serviceElement2API" />
+		</cxf:serviceBeans>
+		<cxf:providers>
+			<ref bean="jsonProvider" />
+		</cxf:providers>
+	</cxf:rsServer>
+
+
+
+</beans>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	   http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+       http://camel.apache.org/schema/spring
+	   http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+	<bean name="englishProcessor" class="it.scai.camelcxfgirex.business.processor.CustomProcessor" />
+	<bean name="italianProcessor" class="it.scai.camelcxfgirex.business.processor.ItalianCustomProcessor" />
+
+	<routeContext id="secondRouting" xmlns="http://camel.apache.org/schema/spring">
+		<route trace="true" id="ROUTE_2">
+			<from uri="cxfrs:bean:rsServer2?bindingStyle=Default" />
+			<choice>
+				<when>
+					<simple> ${in.header.operationName} == 'getStringIt'</simple>
+					<to uri="bean:serviceController?method=doGetString" />
+					<to uri="italianProcessor"/>
+				</when>
+				<when>
+					<simple> ${in.header.operationName} == 'getStringEn'</simple>
+					<to uri="bean:serviceController?method=doGetString" />
+					<to uri="englishProcessor"/>
+				</when>
+			</choice>
+			<log message="The message contains ${body}" />
+		</route>
+	</routeContext>
+
+</beans>

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns="http://www.springframework.org/schema/beans" xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:cache="http://www.springframework.org/schema/cache"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc 
+	http://www.springframework.org/schema/mvc/spring-mvc.xsd
+	http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+    http://camel.apache.org/schema/spring
+	http://camel.apache.org/schema/spring/camel-spring.xsd 
+	http://www.springframework.org/schema/context 
+	http://www.springframework.org/schema/context/spring-context.xsd 
+	http://www.springframework.org/schema/aop 
+	http://www.springframework.org/schema/aop/spring-aop.xsd
+	http://www.springframework.org/schema/util 
+	http://www.springframework.org/schema/util/spring-util.xsd
+	http://www.springframework.org/schema/cache 
+	http://www.springframework.org/schema/cache/spring-cache.xsd
+	http://www.springframework.org/schema/tx 
+	http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+	<import resource="classpath:META-INF/cxf/cxf.xml" />
+	<import resource="classpath:META-INF/cxf/cxf-servlet.xml" />
+
+	<bean id="camelTracer" class="org.apache.camel.processor.interceptor.Tracer">
+		<property name="traceExceptions" value="true" />
+		<property name="traceInterceptors" value="true" />
+		<property name="logLevel" value="DEBUG" />
+		<property name="traceOutExchanges" value="true" />
+	</bean>
+
+
+	<!-- Provider di jackson per il un/marshal dei Json -->
+	<bean id="jsonProvider" class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider" />
+
+	<bean id="logInbound" class="org.apache.cxf.interceptor.LoggingInInterceptor" />
+	<bean id="logOutbound" class="org.apache.cxf.interceptor.LoggingOutInterceptor" />
+
+	<!-- ActiveMQ configuration -->
+	<bean id="defRedPolicy" class="org.apache.activemq.RedeliveryPolicy">
+		<property name="maximumRedeliveries" value="0" />
+	</bean>
+	<bean id="prefetch" class="org.apache.activemq.ActiveMQPrefetchPolicy">
+		<property name="queueBrowserPrefetch" value="50" />
+		<property name="queuePrefetch" value="50" />
+	</bean>
+	<bean id="jmsConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+		<property name="brokerURL" value="nio://127.0.0.1:6616" />
+		<property name="redeliveryPolicy" ref="defRedPolicy" />
+		<property name="trustAllPackages" value="true" />
+		<property name="prefetchPolicy" ref="prefetch" />
+	</bean>
+
+	<bean id="pooledConnectionFactory" class="org.apache.activemq.pool.PooledConnectionFactory"
+		init-method="start" destroy-method="stop">
+		<property name="maxConnections" value="5" />
+		<property name="connectionFactory" ref="jmsConnectionFactory" />
+		<property name="maximumActiveSessionPerConnection" value="500" />
+		<property name="idleTimeout" value="86400000" />
+		<property name="createConnectionOnStartup" value="true" />
+		<property name="reconnectOnException" value="true" />
+	</bean>
+
+	<bean id="jmsConfig" class="org.apache.camel.component.jms.JmsConfiguration">
+		<property name="connectionFactory" ref="pooledConnectionFactory" />
+		<property name="transacted" value="false" />
+		<property name="cacheLevelName" value="CACHE_AUTO" />
+		<property name="errorHandlerLoggingLevel" value="INFO" />
+		<property name="allowSerializedHeaders" value="true" />
+		<property name="transferFault" value="true" />
+		<property name="transferExchange" value="false" />
+		<property name="transferException" value="true" />
+	</bean>
+
+	<bean id="jmstx" class="org.apache.camel.component.jms.JmsComponent">
+		<property name="configuration" ref="jmsConfig" />
+		<!--<property name="transactionTimeout" value="60000"/> -->
+	</bean>
+	
+	<!-- CXFBus -->
+	<bean id="cxf" class="org.apache.cxf.bus.spring.SpringBus">
+		<property name="inInterceptors">
+			<list>
+				<ref bean="logInbound" />
+			</list>
+		</property>
+		<property name="outInterceptors">
+			<list>
+				<ref bean="logOutbound" />
+			</list>
+		</property>
+		<property name="outFaultInterceptors">
+			<list>
+				<ref bean="logOutbound" />
+			</list>
+		</property>
+		<property name="inFaultInterceptors">
+			<list>
+				<ref bean="logInbound" />
+			</list>
+		</property>
+	</bean>
+
+
+
+</beans>
